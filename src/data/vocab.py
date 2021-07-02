@@ -25,3 +25,5 @@ class Vocab:
 	def pad_index(self) -> int:
 		return self.numericalize("p")
 
+	def __len__(self):
+		return len(self.str2index.keys())
