@@ -17,9 +17,12 @@ class BaseDecoder(nn.Module):
         self.fc2 = nn.Linear(in_features=int(self.latent_dim / 2), out_features=int(self.latent_dim / 4))
         self.fc3 = nn.Linear(in_features=int(self.latent_dim / 4), out_features=self.vocab_count)
 
-
     def forward(self, x, hidden, cell):
         pass
+
+    def _one_hot_input(self, x):
+        output = F.one_hot(x, num_classes=self.vocab_count).float()
+        return output.unsqueeze(1)
 
 
 class EmbeddingDecoder(BaseDecoder):
@@ -44,7 +47,6 @@ class EmbeddingDecoder(BaseDecoder):
         self.rnn = nn.LSTM(
             input_size=self.embedding_dim, hidden_size=self.latent_dim, batch_first=True, num_layers=self.num_layers
         )
-
 
     def forward(self, x, hidden_state, cell_state):
         output = self.dropout(self.embedding(x.unsqueeze(1)))
@@ -78,8 +80,68 @@ class OneHotDecoder(BaseDecoder):
         return output, hidden, cell
 
 
+class OneHotAttentionDecoder(BaseDecoder):
+    def __init__(
+        self, vocab_count: int, latent_dim: int, pad_index: int, attention: nn.Module, dropout_ratio: float = 0.5
+    ):
+        super(OneHotAttentionDecoder, self).__init__(vocab_count, latent_dim, pad_index, dropout_ratio)
+
+        self.attention = attention
+        self.rnn = nn.LSTM(
+            (self.attention.encoder_latent_dim * 2) + self.vocab_count, self.latent_dim, batch_first=True
+        )
+
+    def forward(self, x, hidden_state, cell_state, encoder_hidden):
+        one_hot = self._one_hot_input(x)
+
+        attention_weights = self.attention(hidden_state, encoder_hidden)
+        output, (hidden, cell) = self.rnn(
+            torch.cat([one_hot, attention_weights], dim=2), (hidden_state.unsqueeze(0), cell_state.unsqueeze(0))
+        )
+
+        output = self.dropout(torch.tanh(self.fc1(output)))
+        output = self.dropout(torch.tanh(self.fc2(output)))
+        output = self.fc3(output)
+
+        return output, hidden.squeeze(0), cell.squeeze(0)
 
 
-    def _one_hot_input(self, x):
-        output = F.one_hot(x, num_classes=self.vocab_count).float()
-        return output.unsqueeze(1)
+class EmbeddingAttentionDecoder(BaseDecoder):
+    def __init__(
+        self,
+        vocab_count: int,
+        latent_dim: int,
+        pad_index: int,
+        attention: nn.Module,
+        embedding_dim: int,
+        dropout_ratio: float = 0.5,
+    ):
+        super(EmbeddingAttentionDecoder, self).__init__(vocab_count, latent_dim, pad_index, dropout_ratio)
+
+        self.embedding_dim = embedding_dim
+        self.attention = attention
+
+        self.embedding = nn.Embedding(
+            num_embeddings=self.vocab_count, embedding_dim=self.embedding_dim, padding_idx=self.pad_index
+        )
+
+        self.rnn = nn.LSTM(
+            input_size=((self.attention.encoder_latent_dim * 2) + self.embedding_dim),
+            hidden_size=self.latent_dim,
+            batch_first=True,
+        )
+
+    def forward(self, x, hidden_state, cell_state, encoder_hidden):
+        output = self.dropout(self.embedding(x.unsqueeze(1)))
+
+
+        attention_weights = self.attention(hidden_state, encoder_hidden)
+        output, (hidden, cell) = self.rnn(
+            torch.cat([output, attention_weights], dim=2), (hidden_state.unsqueeze(0), cell_state.unsqueeze(0))
+        )
+
+        output = self.dropout(torch.tanh(self.fc1(output)))
+        output = self.dropout(torch.tanh(self.fc2(output)))
+        output = self.fc3(output)
+
+        return output, hidden.squeeze(0), cell.squeeze(0)
