@@ -27,8 +27,7 @@ class DataModule(pl.LightningDataModule):
         sources = []
         targets = []
         with open(filepath, "rt") as file:
-            with ThreadPoolExecutor() as executor:
-                data = list(executor.map(self.parse_line_data, file))
+            data = list(map(self.parse_line_data, file))
 
         sources, targets = zip(*data)
         sources_lenghts = list(map(lambda x: len(x), sources))

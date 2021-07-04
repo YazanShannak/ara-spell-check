@@ -46,7 +46,7 @@ class EmbeddingVanillaSeq2Seq(Seq2SeqBase):
             num_layers=self.num_layers,
         )
 
-    def training_forward(self, src, src_len, trg):
+    def forward(self, src, src_len, trg):
         batch_size = src.shape[0]
         trg_len = trg.shape[1]
 
@@ -103,7 +103,7 @@ class OneHotVanillaSeq2Seq(Seq2SeqBase):
             num_layers=self.num_layers,
         )
 
-    def training_forward(self, src, src_len, trg):
+    def forward(self, src, src_len, trg):
         batch_size = src.shape[0]
         trg_len = trg.shape[1]
 
@@ -119,15 +119,3 @@ class OneHotVanillaSeq2Seq(Seq2SeqBase):
             decoder_inputs = torch.argmax(step_output.squeeze(1), dim=1)
         return outputs
 
-    def forward(self, src, src_len, max_len: int):
-        batch_size = src.shape[0]
-
-        outputs = torch.zeros(batch_size, max_len, self.vocab_count, device=self.device)
-        _, hidden_state, cell_state = self.encoder(src, src_len)
-
-        for i in range(1, max_len):
-            step_output, hidden_state, cell_state = self.decoder(decoder_inputs, hidden_state, cell_state)
-            outputs[:, i, :] = step_output.squeeze(1)
-
-            decoder_inputs = torch.argmax(step_output.squeeze(1), dim=1)
-        return outputs

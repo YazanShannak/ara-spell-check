@@ -36,14 +36,14 @@ class Seq2SeqBase(pl.LightningModule):
         self.f1 = torchmetrics.F1(num_classes=self.vocab_count, ignore_index=self.pad_index)
         self.accuracy = torchmetrics.Accuracy(num_classes=self.vocab_count, ignore_index=self.pad_index)
 
-    def training_forward(self, src, src_len, trg):
+    def forward(self, src, src_len, trg):
         pass
 
     def training_step(self, batch, batch_idx):
         src, src_len, trg, _ = batch
         src_len = src_len.detach().to("cpu")
 
-        outputs = self.training_forward(src=src, src_len=src_len, trg=trg)
+        outputs = self.forward(src=src, src_len=src_len, trg=trg)
 
         loss = self.criterion(outputs[:, 1:, :].reshape(-1, self.vocab_count), trg[:, 1:].reshape(-1))
 
@@ -61,7 +61,7 @@ class Seq2SeqBase(pl.LightningModule):
         src, src_len, trg, _ = batch
         src_len = src_len.detach().to("cpu")
 
-        outputs = self.training_forward(src=src, src_len=src_len, trg=trg)
+        outputs = self.forward(src=src, src_len=src_len, trg=trg)
 
         loss = self.criterion(outputs[:, 1:, :].reshape(-1, self.vocab_count), trg[:, 1:].reshape(-1))
 
