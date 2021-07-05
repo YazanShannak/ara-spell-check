@@ -20,6 +20,7 @@ except:
 parser = argparse.ArgumentParser()
 parser.add_argument("input_encoding", type=str)
 parser.add_argument("--attention", default=False, action="store_true")
+parser.add_argument("--bidirectional", default=False, action="store_true")
 parser.add_argument("--batch-size", type=int, default=64)
 parser.add_argument("--encoder_latent_dim", type=int, default=512)
 parser.add_argument("--decoder_latent_dim", type=int, default=512)
@@ -83,7 +84,7 @@ if __name__ == "__main__":
             dropout=args.dropout
         )
         model_name = "onehot-vanilla"
-    elif encoding_type == "embedding" and not args.attention:
+    elif encoding_type == "embedding" and not args.attention and not args.bidirectional:
         model = EmbeddingVanillaSeq2Seq(
             vocab_count=len(vocab),
             embedding_dim=args.embedding_dim,
@@ -94,7 +95,18 @@ if __name__ == "__main__":
             num_layers=args.num_layers,
             dropout=args.dropout
         )
-        model_name = "embedding-vanilla"
+    elif encoding_type == "embedding" and not args.attention and args.bidirectional:
+        model = EmbeddingBidirectionalSeq2Seq(
+            vocab_count=len(vocab),
+            encoder_latent_dim=args.encoder_latent_dim,
+            decoder_latent_dim=args.decoder_latent_dim,
+            embedding_dim=args.embedding_dim,
+            pad_index=vocab.pad_index,
+            learning_rate=args.learning_rate,
+            weight_decay=args.learning_rate,
+            dropout=args.dropout
+        )
+        model_name = "embedding-bidirectional-vanilla"
 
 
     logger = MLFlowLogger(
