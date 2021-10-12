@@ -1,5 +1,5 @@
-from src.models.vanilla import OneHotVanillaSeq2Seq, EmbeddingVanillaSeq2Seq, EmbeddingBidirectionalSeq2Seq
-from src.models.attention import OneHotBahdanau, EmbeddingBahdanau
+from src.models.attention import EmbeddingBahdanau, OneHotBahdanau
+from src.models.vanilla import EmbeddingBidirectionalSeq2Seq, EmbeddingVanillaSeq2Seq, OneHotVanillaSeq2Seq
 
 __all__ = [
     "OneHotVanillaSeq2Seq",

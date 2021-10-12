@@ -1,9 +1,9 @@
-from src.models.layers.decoders import EmbeddingAttentionDecoder
 from typing import Optional
 
 import torch
 from src.models.base import Seq2SeqBase
 from src.models.layers import *
+from src.models.layers.decoders import EmbeddingAttentionDecoder
 
 
 class OneHotBahdanau(Seq2SeqBase):
@@ -102,7 +102,7 @@ class EmbeddingBahdanau(Seq2SeqBase):
             pad_index=self.pad_index,
             bidirectional=True,
             decoder_latent_dim=self.decoder_latent_dim,
-            embedding_dim=self.embedding_dim
+            embedding_dim=self.embedding_dim,
         )
 
         self.attention = BahdanauAttention(

@@ -120,7 +120,6 @@ class OneHotVanillaSeq2Seq(Seq2SeqBase):
         return outputs
 
 
-
 class EmbeddingBidirectionalSeq2Seq(Seq2SeqBase):
     def __init__(
         self,
@@ -128,10 +127,10 @@ class EmbeddingBidirectionalSeq2Seq(Seq2SeqBase):
         encoder_latent_dim: int,
         decoder_latent_dim: int,
         pad_index: int,
-        embedding_dim:int,
+        embedding_dim: int,
         learning_rate: float = 1e-4,
         weight_decay: float = 1e-4,
-        dropout: float = 0.5
+        dropout: float = 0.5,
     ):
         super(EmbeddingBidirectionalSeq2Seq, self).__init__(
             vocab_count=vocab_count,
@@ -140,7 +139,7 @@ class EmbeddingBidirectionalSeq2Seq(Seq2SeqBase):
             pad_index=pad_index,
             learning_rate=learning_rate,
             weight_decay=weight_decay,
-            dropout=dropout
+            dropout=dropout,
         )
 
         self.embedding_dim = embedding_dim
@@ -154,14 +153,14 @@ class EmbeddingBidirectionalSeq2Seq(Seq2SeqBase):
             dropout_ratio=self.dropout,
             bidirectional=True,
             embedding_dim=self.embedding_dim,
-            decoder_latent_dim=self.decoder_latent_dim
+            decoder_latent_dim=self.decoder_latent_dim,
         )
 
         self.decoder = EmbeddingDecoder(
             vocab_count=self.vocab_count,
             latent_dim=self.decoder_latent_dim,
             pad_index=self.pad_index,
-            embedding_dim=self.embedding_dim
+            embedding_dim=self.embedding_dim,
         )
 
     def forward(self, src, src_len, trg):

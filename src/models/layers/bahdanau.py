@@ -10,8 +10,6 @@ class BahdanauAttention(nn.Module):
         self.encoder_latent_dim = encoder_latent_dim
         self.decoder_latent_dim = decoder_latent_dim
 
-
-
         self.attn = nn.Linear((self.encoder_latent_dim * 2) + self.decoder_latent_dim, self.decoder_latent_dim)
         self.v = nn.Linear(decoder_latent_dim, 1, bias=False)
 

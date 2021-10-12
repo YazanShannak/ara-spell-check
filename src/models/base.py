@@ -1,4 +1,5 @@
 from typing import Optional
+
 import pytorch_lightning as pl
 import torch
 import torchmetrics
@@ -54,7 +55,6 @@ class Seq2SeqBase(pl.LightningModule):
         self.log("train_f1", f1, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log("train_acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
-
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -71,7 +71,6 @@ class Seq2SeqBase(pl.LightningModule):
         self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log("val_f1", f1, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log("val_acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-
 
         return loss
 

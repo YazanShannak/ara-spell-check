@@ -134,7 +134,6 @@ class EmbeddingAttentionDecoder(BaseDecoder):
     def forward(self, x, hidden_state, cell_state, encoder_hidden):
         output = self.dropout(self.embedding(x.unsqueeze(1)))
 
-
         attention_weights = self.attention(hidden_state, encoder_hidden)
         output, (hidden, cell) = self.rnn(
             torch.cat([output, attention_weights], dim=2), (hidden_state.unsqueeze(0), cell_state.unsqueeze(0))

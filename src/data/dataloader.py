@@ -1,12 +1,13 @@
 import os
-import torch
-import pytorch_lightning as pl
-from torch.functional import Tensor
-from torch.utils.data import TensorDataset, DataLoader
-from torch.nn.utils.rnn import pad_sequence
-from src.data.vocab import Vocab
 from typing import Tuple
-from concurrent.futures import ThreadPoolExecutor
+
+import pytorch_lightning as pl
+import torch
+from src.data.vocab import Vocab
+from torch.functional import Tensor
+from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data import DataLoader, TensorDataset
+
 
 class DataModule(pl.LightningDataModule):
     def __init__(self, data_dir: str, vocab: Vocab, batch_size: int = 16):
@@ -22,7 +23,7 @@ class DataModule(pl.LightningDataModule):
         validation_data = self.load_csv_file(type="validation")
         self.validation_dataset = TensorDataset(*validation_data)
 
-    def load_csv_file(self, type: str)-> torch.Tensor:
+    def load_csv_file(self, type: str) -> torch.Tensor:
         filepath = os.path.join(self.data_dir, type + ".csv")
         sources = []
         targets = []
@@ -35,7 +36,9 @@ class DataModule(pl.LightningDataModule):
 
         sources = pad_sequence(sources, batch_first=True, padding_value=self.vocab.pad_index)
         targets = pad_sequence(targets, batch_first=True, padding_value=self.vocab.pad_index)
-        data = pad_sequence([sources.permute(1, 0), targets.permute(1, 0)], padding_value=self.vocab.pad_index).permute(1, 2, 0)
+        data = pad_sequence([sources.permute(1, 0), targets.permute(1, 0)], padding_value=self.vocab.pad_index).permute(
+            1, 2, 0
+        )
         return data[0], torch.tensor(sources_lenghts), data[1], torch.tensor(targets_lenghts)
 
     def train_dataloader(self) -> DataLoader:

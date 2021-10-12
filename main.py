@@ -3,8 +3,8 @@ import os
 
 import torch
 from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers.mlflow import MLFlowLogger
-from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 
 from src.data.dataloader import DataModule
 from src.data.vocab import Vocab
@@ -81,7 +81,7 @@ if __name__ == "__main__":
             learning_rate=args.learning_rate,
             weight_decay=args.learning_rate,
             num_layers=args.num_layers,
-            dropout=args.dropout
+            dropout=args.dropout,
         )
         model_name = "onehot-vanilla"
     elif encoding_type == "embedding" and not args.attention and not args.bidirectional:
@@ -93,7 +93,7 @@ if __name__ == "__main__":
             learning_rate=args.learning_rate,
             weight_decay=args.learning_rate,
             num_layers=args.num_layers,
-            dropout=args.dropout
+            dropout=args.dropout,
         )
     elif encoding_type == "embedding" and not args.attention and args.bidirectional:
         model = EmbeddingBidirectionalSeq2Seq(
@@ -104,10 +104,9 @@ if __name__ == "__main__":
             pad_index=vocab.pad_index,
             learning_rate=args.learning_rate,
             weight_decay=args.learning_rate,
-            dropout=args.dropout
+            dropout=args.dropout,
         )
         model_name = "embedding-bidirectional-vanilla"
-
 
     logger = MLFlowLogger(
         experiment_name="seq2seq",
