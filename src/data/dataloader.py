@@ -16,7 +16,12 @@ class DataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.vocab = vocab
 
-    def setup(self):
+    def setup(self, test_only: bool = False) -> None:
+        test_data = self.load_csv_file(type="test")
+        self.test_dataset = TensorDataset(*test_data)
+        if test_only:
+            return
+
         train_data = self.load_csv_file(type="train")
         self.train_dataset = TensorDataset(*train_data)
 
@@ -46,6 +51,9 @@ class DataModule(pl.LightningDataModule):
 
     def val_dataloader(self) -> DataLoader:
         return DataLoader(self.validation_dataset, batch_size=self.batch_size, shuffle=True)
+
+    def test_dataloader(self) -> DataLoader:
+        return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False)
 
     def parse_line_data(self, line: str) -> Tuple[Tensor, Tensor]:
         source, target = tuple(map(lambda x: "\t" + x.strip() + "\n", line.split(",")))
