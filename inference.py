@@ -23,7 +23,7 @@ parser.add_argument(
     "--output_name",
     action="store",
     required=False,
-    default="inference.xlsx",
+    default="inference",
     help="name of the output file",
 )
 
