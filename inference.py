@@ -1,16 +1,20 @@
 import argparse
 import csv
+import json
 import os
 from difflib import SequenceMatcher
 from functools import partial
 from typing import Tuple
 
 import torch
+import torchmetrics
 from tqdm import tqdm
 
 from src.data.dataloader import DataModule
 from src.data.vocab import Vocab
 from src.models import EmbeddingBahdanau
+
+from src import metrics
 
 parser = argparse.ArgumentParser(prog="Inference", description="infere model results on test dataset", add_help=True)
 parser.add_argument(
@@ -62,7 +66,7 @@ if __name__ == "__main__":
     data_dir = os.path.abspath(os.path.join(os.curdir, "data"))
     vocab_path = os.path.abspath(os.path.join(os.curdir, "vocab.json"))
     vocab = Vocab.from_json_file(json_filepath=vocab_path)
-    output_path = os.path.join(os.curdir, args.output_name + ".csv")
+    output_name = args.output_name
     # Load model
     model = EmbeddingBahdanau.load_from_checkpoint(checkpoint_path=model_path)
     model.to(device)
@@ -74,9 +78,22 @@ if __name__ == "__main__":
 
     process_results = partial(process_results, vocab=vocab)
 
-    with open(output_path, mode="w+", encoding="UTF8") as csv_file:
+    with open(os.path.join(os.curdir, output_name + ".csv"), mode="w+", encoding="UTF8") as csv_file:
         csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(["source", "result", "target", "matching ratio", "correct"])
+        csv_writer.writerow(
+            [
+                "source",
+                "result",
+                "target",
+                "matching ratio",
+                "correct",
+                "precision",
+                "recall",
+                "f1",
+                "char_length",
+                "word_length",
+            ]
+        )
 
         for index, batch in tqdm(
             enumerate(test_loader), total=len(test_loader), desc="running inference on test dataset"
@@ -103,6 +120,27 @@ if __name__ == "__main__":
                     src=sample_src, src_len=sample_src_len, trg=sample_trg, trg_len=sample_trg_len, result=sample_result
                 )
                 is_correct = result_str == trg_str
+
                 matching_ratio = SequenceMatcher(None, trg_str, result_str).ratio()
 
-                csv_writer.writerow([src_str, result_str, trg_str, matching_ratio, is_correct])
+                precision, recall, f1 = metrics.calculate_metrics(
+                    result=list(sample_result),
+                    target=list(sample_trg),
+                    target_len=sample_trg_len,
+                    end_index=vocab.numericalize("\n"),
+                )
+
+                csv_writer.writerow(
+                    [
+                        src_str,
+                        result_str,
+                        trg_str,
+                        matching_ratio,
+                        is_correct,
+                        precision,
+                        recall,
+                        f1,
+                        len(trg_str),
+                        len(trg_str.split(" ")),
+                    ]
+                )
