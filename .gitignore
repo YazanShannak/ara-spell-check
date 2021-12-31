@@ -6,3 +6,4 @@ __pycache__/
 checkpoints/
 *.xlsx
 *.ckpt
+.ipynb_checkpoints/
