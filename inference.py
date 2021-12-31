@@ -7,12 +7,11 @@ from functools import partial
 from typing import Tuple
 
 import torch
-import torchmetrics
 from tqdm import tqdm
 
 from src.data.dataloader import DataModule
 from src.data.vocab import Vocab
-from src.models import EmbeddingBahdanau
+from src.models import EmbeddingBahdanau, OneHotBahdanau
 
 from src import metrics
 
@@ -23,6 +22,15 @@ parser.add_argument(
     type=argparse.FileType(mode="r"),
     help="path to the .cpkt file",
 )
+
+parser.add_argument(
+    "model_type",
+    action="store",
+    type=str,
+    choices=["onehot", "bahdanau"],
+    help="type of model to use",
+)
+
 parser.add_argument(
     "--output_name",
     action="store",
@@ -68,7 +76,14 @@ if __name__ == "__main__":
     vocab = Vocab.from_json_file(json_filepath=vocab_path)
     output_name = args.output_name
     # Load model
-    model = EmbeddingBahdanau.load_from_checkpoint(checkpoint_path=model_path)
+    model_type = args.model_type
+    if model_type == "onehot":
+        model = OneHotBahdanau.load_from_checkpoint(checkpoint_path=model_path)
+    elif model_type == "bahdanau":
+        model = EmbeddingBahdanau.load_from_checkpoint(checkpoint_path=model_path)
+    else:
+        raise ValueError("Unknown model type")
+
     model.to(device)
     model.eval()
     # Load data
